@@ -254,12 +254,7 @@
                 <p>输入一个成语，开始你的接龙之旅！</p>
             </div>
 
-            <div class="chat-area" id="chatArea">
-                <div class="empty-state">
-                    <h3>欢迎来到成语接龙</h3>
-                    <p>输入一个成语开始游戏吧！</p>
-                </div>
-            </div>
+            <div class="chat-area" id="chatArea"></div>
 
             <div class="loading" id="loading">
                 <div class="loading-dots">
@@ -289,6 +284,12 @@
 
             // 初始化
             function init() {
+                // 显示AI的初始问候
+                addMessage(
+                    '你好，我是成语接龙 AI 选手，和我说"开始"启动成语接龙游戏。',
+                    "assistant",
+                );
+
                 // 发送按钮点击事件
                 sendBtn.addEventListener("click", sendMessage);
 
@@ -313,12 +314,6 @@
 
                 // 清空输入框
                 userInput.value = "";
-
-                // 清空欢迎消息
-                const emptyState = chatArea.querySelector(".empty-state");
-                if (emptyState) {
-                    emptyState.remove();
-                }
 
                 // 显示用户消息
                 addMessage(message, "user");
