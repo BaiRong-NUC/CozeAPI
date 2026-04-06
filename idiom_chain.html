@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>成语接龙</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Microsoft YaHei", Arial, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+
+            .container {
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                width: 100%;
+                max-width: 600px;
+                overflow: hidden;
+            }
+
+            .header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 25px;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 28px;
+                margin-bottom: 8px;
+            }
+
+            .header p {
+                font-size: 14px;
+                opacity: 0.9;
+            }
+
+            .chat-area {
+                height: 450px;
+                overflow-y: auto;
+                padding: 25px;
+                background: #f8f9fa;
+            }
+
+            .chat-area::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .chat-area::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+
+            .chat-area::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 3px;
+            }
+
+            .chat-area::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+
+            .message {
+                margin-bottom: 20px;
+                display: flex;
+                animation: fadeIn 0.3s ease-in;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .message.user {
+                justify-content: flex-end;
+            }
+
+            .message.assistant {
+                justify-content: flex-start;
+            }
+
+            .message-content {
+                max-width: 75%;
+                padding: 12px 18px;
+                border-radius: 18px;
+                word-wrap: break-word;
+                position: relative;
+            }
+
+            .message.user .message-content {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-bottom-right-radius: 4px;
+            }
+
+            .message.assistant .message-content {
+                background: white;
+                color: #333;
+                border-bottom-left-radius: 4px;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+
+            .message-time {
+                font-size: 11px;
+                opacity: 0.6;
+                margin-top: 5px;
+                text-align: right;
+            }
+
+            .message.assistant .message-time {
+                text-align: left;
+            }
+
+            .input-area {
+                padding: 20px;
+                background: white;
+                border-top: 1px solid #e0e0e0;
+            }
+
+            .input-group {
+                display: flex;
+                gap: 10px;
+            }
+
+            #userInput {
+                flex: 1;
+                padding: 12px 18px;
+                border: 2px solid #e0e0e0;
+                border-radius: 25px;
+                font-size: 15px;
+                outline: none;
+                transition: border-color 0.3s;
+            }
+
+            #userInput:focus {
+                border-color: #667eea;
+            }
+
+            #sendBtn {
+                padding: 12px 30px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 25px;
+                font-size: 15px;
+                cursor: pointer;
+                transition:
+                    transform 0.2s,
+                    box-shadow 0.2s;
+                font-weight: bold;
+            }
+
+            #sendBtn:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+
+            #sendBtn:active:not(:disabled) {
+                transform: translateY(0);
+            }
+
+            #sendBtn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+            .loading {
+                display: none;
+                text-align: center;
+                padding: 10px;
+                color: #666;
+            }
+
+            .loading.show {
+                display: block;
+            }
+
+            .loading-dots {
+                display: inline-block;
+            }
+
+            .loading-dots span {
+                animation: blink 1.4s infinite;
+                display: inline-block;
+                margin: 0 2px;
+            }
+
+            .loading-dots span:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .loading-dots span:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+
+            @keyframes blink {
+                0%,
+                60%,
+                100% {
+                    opacity: 1;
+                }
+                30% {
+                    opacity: 0.3;
+                }
+            }
+
+            .empty-state {
+                text-align: center;
+                color: #999;
+                padding: 50px 20px;
+            }
+
+            .empty-state h3 {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+
+            .empty-state p {
+                font-size: 14px;
+            }
+
+            .error-message {
+                background: #fee;
+                color: #c33;
+                padding: 10px;
+                border-radius: 8px;
+                margin: 10px 0;
+                font-size: 14px;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🎯 成语接龙</h1>
+                <p>输入一个成语，开始你的接龙之旅！</p>
+            </div>
+
+            <div class="chat-area" id="chatArea">
+                <div class="empty-state">
+                    <h3>欢迎来到成语接龙</h3>
+                    <p>输入一个成语开始游戏吧！</p>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="loading-dots">
+                    思考中<span>.</span><span>.</span><span>.</span>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-group">
+                    <input
+                        type="text"
+                        id="userInput"
+                        placeholder="请输入成语..."
+                        autocomplete="off"
+                    />
+                    <button id="sendBtn">发送</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const API_URL = "http://localhost:5000/idioms/play";
+            const chatArea = document.getElementById("chatArea");
+            const userInput = document.getElementById("userInput");
+            const sendBtn = document.getElementById("sendBtn");
+            const loading = document.getElementById("loading");
+
+            // 初始化
+            function init() {
+                // 发送按钮点击事件
+                sendBtn.addEventListener("click", sendMessage);
+
+                // 回车发送
+                userInput.addEventListener("keypress", (e) => {
+                    if (e.key === "Enter") {
+                        sendMessage();
+                    }
+                });
+
+                // 聚焦输入框
+                userInput.focus();
+            }
+
+            // 发送消息
+            async function sendMessage() {
+                const message = userInput.value.trim();
+
+                if (!message) {
+                    return;
+                }
+
+                // 清空输入框
+                userInput.value = "";
+
+                // 清空欢迎消息
+                const emptyState = chatArea.querySelector(".empty-state");
+                if (emptyState) {
+                    emptyState.remove();
+                }
+
+                // 显示用户消息
+                addMessage(message, "user");
+
+                // 禁用输入
+                setInputState(false);
+
+                // 显示加载动画
+                loading.classList.add("show");
+
+                try {
+                    // 调用API
+                    const response = await fetch(API_URL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            user_input: message,
+                        }),
+                    });
+
+                    loading.classList.remove("show");
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP错误! 状态: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.status === "success") {
+                        // 显示智能体回复
+                        addMessage(data.reply, "assistant");
+                    } else {
+                        // 显示错误消息
+                        showError(data.error || "未知错误");
+                    }
+                } catch (error) {
+                    loading.classList.remove("show");
+                    console.error("请求失败:", error);
+                    showError("请求失败，请确保后端服务已启动！");
+                } finally {
+                    // 恢复输入
+                    setInputState(true);
+                }
+            }
+
+            // 添加消息到聊天区域
+            function addMessage(text, type) {
+                const messageDiv = document.createElement("div");
+                messageDiv.className = `message ${type}`;
+
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString("zh-CN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                });
+
+                messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${escapeHtml(text)}
+                    <div class="message-time">${timeStr}</div>
+                </div>
+            `;
+
+                chatArea.appendChild(messageDiv);
+
+                // 滚动到底部
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+
+            // 显示错误消息
+            function showError(errorText) {
+                const errorDiv = document.createElement("div");
+                errorDiv.className = "error-message";
+                errorDiv.textContent = errorText;
+                chatArea.appendChild(errorDiv);
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+
+            // 设置输入状态
+            function setInputState(enabled) {
+                userInput.disabled = !enabled;
+                sendBtn.disabled = !enabled;
+                if (enabled) {
+                    userInput.focus();
+                }
+            }
+
+            // HTML转义
+            function escapeHtml(text) {
+                const div = document.createElement("div");
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // 页面加载完成后初始化
+            init();
+        </script>
+    </body>
+</html>
