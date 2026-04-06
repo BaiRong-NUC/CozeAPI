@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from cozepy import Coze, TokenAuth, COZE_CN_BASE_URL, Message, ChatStatus, MessageType
 from datetime import datetime
 
@@ -8,6 +9,7 @@ from datetime import datetime
 
 load_dotenv()
 app = Flask(__name__)
+CORS(app)  # 启用CORS支持
 
 
 class IdiomChain:
