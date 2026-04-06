@@ -181,6 +181,30 @@
                 cursor: not-allowed;
             }
 
+            #giveUpBtn {
+                padding: 12px 30px;
+                background: #6c757d;
+                color: white;
+                border: none;
+                border-radius: 25px;
+                font-size: 15px;
+                cursor: pointer;
+                transition:
+                    transform 0.2s,
+                    box-shadow 0.2s;
+                font-weight: bold;
+            }
+
+            #giveUpBtn:hover {
+                background: #5a6268;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+            }
+
+            #giveUpBtn:active {
+                transform: translateY(0);
+            }
+
             .loading {
                 display: none;
                 text-align: center;
@@ -270,6 +294,7 @@
                         placeholder="请输入成语..."
                         autocomplete="off"
                     />
+                    <button id="giveUpBtn">认输</button>
                     <button id="sendBtn">发送</button>
                 </div>
             </div>
@@ -280,6 +305,7 @@
             const chatArea = document.getElementById("chatArea");
             const userInput = document.getElementById("userInput");
             const sendBtn = document.getElementById("sendBtn");
+            const giveUpBtn = document.getElementById("giveUpBtn");
             const loading = document.getElementById("loading");
 
             // 初始化
@@ -293,12 +319,33 @@
                 // 发送按钮点击事件
                 sendBtn.addEventListener("click", sendMessage);
 
+                // 认输按钮点击事件
+                giveUpBtn.addEventListener("click", restartGame);
+
                 // 回车发送
                 userInput.addEventListener("keypress", (e) => {
                     if (e.key === "Enter") {
                         sendMessage();
                     }
                 });
+
+                // 聚焦输入框
+                userInput.focus();
+            }
+
+            // 重新开始游戏
+            function restartGame() {
+                // 清空聊天区域
+                chatArea.innerHTML = "";
+
+                // 清空输入框
+                userInput.value = "";
+
+                // 显示AI的初始问候
+                addMessage(
+                    '你好，我是成语接龙 AI 选手，和我说"开始"启动成语接龙游戏。',
+                    "assistant",
+                );
 
                 // 聚焦输入框
                 userInput.focus();
@@ -399,6 +446,7 @@
             function setInputState(enabled) {
                 userInput.disabled = !enabled;
                 sendBtn.disabled = !enabled;
+                giveUpBtn.disabled = !enabled;
                 if (enabled) {
                     userInput.focus();
                 }
