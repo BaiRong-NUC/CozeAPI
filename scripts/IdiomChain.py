@@ -20,12 +20,19 @@ class IdiomChain:
 
         self.current_idiom = None  # 当前成语
         self.idioms_history = []  # 成语历史记录
+        self.conversation_id = None  # 当前会话ID
 
         # 初始化 Coze 客户端
         self.coze = Coze(
             auth=TokenAuth(self.api_token),
             base_url=COZE_CN_BASE_URL,
         )
+
+    def reset(self):
+        """重置游戏状态"""
+        self.current_idiom = None
+        self.idioms_history = []
+        self.conversation_id = None
 
     def play(self, user_input: str):
         try:
@@ -38,12 +45,24 @@ class IdiomChain:
             )
 
             # 调用智能体接口
-            response = self.coze.chat.create(
-                bot_id=self.bot_id,
-                user_id=self.user_id,
-                additional_messages=[message],
-                auto_save_history=True,
-            )
+            # 如果有conversation_id，继续之前的会话；否则创建新会话
+            if self.conversation_id:
+                response = self.coze.chat.create(
+                    bot_id=self.bot_id,
+                    user_id=self.user_id,
+                    conversation_id=self.conversation_id,
+                    additional_messages=[message],
+                    auto_save_history=True,
+                )
+            else:
+                response = self.coze.chat.create(
+                    bot_id=self.bot_id,
+                    user_id=self.user_id,
+                    additional_messages=[message],
+                    auto_save_history=True,
+                )
+                # 保存新会话的ID
+                self.conversation_id = response.conversation_id
 
             # 等待结果
             while response.status == ChatStatus.IN_PROGRESS:
@@ -92,6 +111,18 @@ def play_idiom_chain():
             "status": "success",
             "reply": result,
             "timestamp": datetime.now().strftime("%H:%M:%S"),
+        }
+    )
+
+
+@app.route("/idioms/reset", methods=["POST"])
+def reset_idiom_chain():
+    """重置游戏，开始新的会话"""
+    idiom_chain.reset()
+    return jsonify(
+        {
+            "status": "success",
+            "message": "游戏已重置",
         }
     )
 
